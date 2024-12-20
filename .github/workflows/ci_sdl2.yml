@@ -52,7 +52,7 @@ jobs:
         run: |
           chmod +x ./build.sh
           # Suppress excessive output and only capture errors to the log
-          ./build.sh --prefix=$BUILD_PREFIX --ndkdir=$NDK_PATH --arch=armeabi-v7a --api=16 > build_output.log 2>&1
+          ./build.sh --prefix=$BUILD_PREFIX --ndkdir=$NDK_PATH --arch=arm64-v8a --api=21 > build_output.log 2>&1
 
       - name: Check build output
         run: |
