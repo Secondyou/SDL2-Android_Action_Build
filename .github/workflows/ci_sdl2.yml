@@ -53,20 +53,15 @@ jobs:
           chmod +x ./build.sh
           ./build.sh --prefix=$BUILD_PREFIX --ndkdir=$NDK_PATH --arch=armeabi-v7a --api=16 > build_output.log 2>&1
 
-      - name: Check if required directories exist
+      - name: Check build output
         run: |
-          echo "Checking if directories exist..."
-          ls /home/runner/build/libs
-          ls /home/runner/build/obj/libs/arm64-v8a
+          echo "Build completed. Listing build directory contents..."
+          ls -al /home/runner/build  # List all files in the build directory for debugging
 
-      - name: Zip the build output (with checks)
+      - name: Zip the entire build output
         run: |
-          # Check if the directories exist and zip if they do
-          if [ -d "/home/runner/build/libs" ] && [ -d "/home/runner/build/obj/libs/arm64-v8a" ]; then
-            zip -r /home/runner/build_output.zip /home/runner/build/libs /home/runner/build/obj/libs/arm64-v8a
-          else
-            echo "Required directories not found. Skipping zipping."
-          fi
+          # Zip everything under /home/runner/build
+          zip -r /home/runner/build_output.zip /home/runner/build/*
 
       - name: Upload build output zip
         uses: actions/upload-artifact@v3
