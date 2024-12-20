@@ -47,16 +47,26 @@ jobs:
           echo "NDK_PATH=/home/runner/ndk/android-ndk-r21d" >> $GITHUB_ENV
           echo "BUILD_PREFIX=/home/runner/build" >> $GITHUB_ENV
 
-      - name: Run build.sh with options
+      - name: Run build.sh with options (Suppress excessive output)
         id: build_output
         run: |
           chmod +x ./build.sh
-          ./build.sh --prefix=$BUILD_PREFIX --ndkdir=$NDK_PATH --arch=armeabi-v7a --api=16 | tee build_output.log  # Tee the output to both console and file
+          ./build.sh --prefix=$BUILD_PREFIX --ndkdir=$NDK_PATH --arch=armeabi-v7a --api=16 > build_output.log 2>&1
 
-      - name: Zip the build output
+      - name: Check if required directories exist
         run: |
-          # Zip the build output folders (libs and obj/libs/arm64-v8a)
-          zip -r /home/runner/build_output.zip /home/runner/build/libs /home/runner/build/obj/libs/arm64-v8a
+          echo "Checking if directories exist..."
+          ls /home/runner/build/libs
+          ls /home/runner/build/obj/libs/arm64-v8a
+
+      - name: Zip the build output (with checks)
+        run: |
+          # Check if the directories exist and zip if they do
+          if [ -d "/home/runner/build/libs" ] && [ -d "/home/runner/build/obj/libs/arm64-v8a" ]; then
+            zip -r /home/runner/build_output.zip /home/runner/build/libs /home/runner/build/obj/libs/arm64-v8a
+          else
+            echo "Required directories not found. Skipping zipping."
+          fi
 
       - name: Upload build output zip
         uses: actions/upload-artifact@v3
@@ -64,7 +74,7 @@ jobs:
           name: build-output-zip
           path: /home/runner/build_output.zip  # Upload the zip file containing build output
 
-      - name: Upload build output log
+      - name: Upload build output log (Limited verbosity)
         uses: actions/upload-artifact@v3
         with:
           name: build-output-log
