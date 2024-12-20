@@ -26,7 +26,7 @@ jobs:
       - name: Install required dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential libssl-dev cmake clang wget unzip
+          sudo apt-get install -y build-essential libssl-dev cmake clang wget unzip zip
 
       - name: Download and setup Android NDK
         run: |
@@ -51,10 +51,21 @@ jobs:
         id: build_output
         run: |
           chmod +x ./build.sh
-          ./build.sh --prefix=$BUILD_PREFIX --ndkdir=$NDK_PATH --arch=arm64-v8a --api=21 | tee build_output.log  # Tee the output to both console and file
+          ./build.sh --prefix=$BUILD_PREFIX --ndkdir=$NDK_PATH --arch=armeabi-v7a --api=16 | tee build_output.log  # Tee the output to both console and file
 
-      - name: Upload build output as artifact
+      - name: Zip the build output
+        run: |
+          # Zip the build output folders (libs and obj/libs/arm64-v8a)
+          zip -r /home/runner/build_output.zip /home/runner/build/libs /home/runner/build/obj/libs/arm64-v8a
+
+      - name: Upload build output zip
         uses: actions/upload-artifact@v3
         with:
-          name: /home/runner/build/build-output
-          path: /home/runner/build_output.log  # Upload the captured log file as an artifact
+          name: build-output-zip
+          path: /home/runner/build_output.zip  # Upload the zip file containing build output
+
+      - name: Upload build output log
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-output-log
+          path: build_output.log  # Upload the captured log file as an artifact
