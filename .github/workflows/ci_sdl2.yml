@@ -26,9 +26,35 @@ jobs:
       - name: Install required dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential libssl-dev cmake clang
+          sudo apt-get install -y build-essential libssl-dev cmake clang wget unzip
 
-      - name: Run build.sh
+      - name: Download and setup Android NDK
         run: |
-          chmod +x ./build.sh  # Make sure build.sh is executable
-          ./build.sh  # Run the script
+          # Create a folder for the NDK
+          mkdir -p /home/runner/ndk
+          
+          # Download the NDK (r21d is an example, change if needed)
+          wget https://dl.google.com/android/repository/android-ndk-r21d-linux-x86_64.zip -O /home/runner/ndk/ndk.zip
+          
+          # Unzip the NDK into the folder
+          unzip /home/runner/ndk/ndk.zip -d /home/runner/ndk
+          
+          # Clean up the zip file
+          rm /home/runner/ndk/ndk.zip
+
+      - name: Set environment variables
+        run: |
+          echo "NDK_PATH=/home/runner/ndk/android-ndk-r21d" >> $GITHUB_ENV
+          echo "BUILD_PREFIX=/home/runner/build" >> $GITHUB_ENV
+
+      - name: Run build.sh with options
+        id: build_output
+        run: |
+          chmod +x ./build.sh
+          ./build.sh --prefix=$BUILD_PREFIX --ndkdir=$NDK_PATH --arch=arm64-v8a --api=21 | tee build_output.log  # Tee the output to both console and file
+
+      - name: Upload build output as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: /home/runner/build/build-output
+          path: /home/runner/build_output.log  # Upload the captured log file as an artifact
