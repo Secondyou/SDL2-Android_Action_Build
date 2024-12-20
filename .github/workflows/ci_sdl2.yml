@@ -47,10 +47,11 @@ jobs:
           echo "NDK_PATH=/home/runner/ndk/android-ndk-r21d" >> $GITHUB_ENV
           echo "BUILD_PREFIX=/home/runner/build" >> $GITHUB_ENV
 
-      - name: Run build.sh with options (Suppress excessive output)
+      - name: Run build.sh with options (suppress excessive output)
         id: build_output
         run: |
           chmod +x ./build.sh
+          # Suppress excessive output and only capture errors to the log
           ./build.sh --prefix=$BUILD_PREFIX --ndkdir=$NDK_PATH --arch=armeabi-v7a --api=16 > build_output.log 2>&1
 
       - name: Check build output
@@ -58,19 +59,14 @@ jobs:
           echo "Build completed. Listing build directory contents..."
           ls -al /home/runner/build  # List all files in the build directory for debugging
 
-      - name: Zip the entire build output
-        run: |
-          # Zip everything under /home/runner/build
-          zip -r /home/runner/build_output.zip /home/runner/build/*
-
-      - name: Upload build output zip
-        uses: actions/upload-artifact@v3
+      - name: Upload build output folder
+        uses: actions/upload-artifact@v4  # Updated to v4
         with:
-          name: build-output-zip
-          path: /home/runner/build_output.zip  # Upload the zip file containing build output
+          name: build-output-folder
+          path: /home/runner/build/lib  # Directly upload the 'lib' folder
 
-      - name: Upload build output log (Limited verbosity)
-        uses: actions/upload-artifact@v3
+      - name: Upload build output log
+        uses: actions/upload-artifact@v4  # Updated to v4
         with:
           name: build-output-log
           path: build_output.log  # Upload the captured log file as an artifact
